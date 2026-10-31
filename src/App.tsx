@@ -44,6 +44,22 @@ export function App() {
 
   const refresh = useCallback(() => setRefreshId((value) => value + 1), []);
   useEffect(() => {
+    const timer = window.setInterval(
+      () => {
+        if (document.visibilityState === "visible") refresh();
+      },
+      5 * 60 * 1000,
+    );
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refresh]);
+  useEffect(() => {
     writeLocal("eia-key", eiaKey);
   }, [eiaKey]);
   useEffect(() => {

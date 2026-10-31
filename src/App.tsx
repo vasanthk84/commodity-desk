@@ -71,7 +71,10 @@ export function App() {
         }
       })
       .catch((error) => {
-        if (active) setStripError(error.message);
+        if (active) {
+          setStrip([]);
+          setStripError(error.message);
+        }
       });
     return () => {
       active = false;

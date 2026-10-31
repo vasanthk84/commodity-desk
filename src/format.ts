@@ -6,12 +6,26 @@ export const fmt = (value: number, digits = 1) =>
 export const signed = (value: number | null | undefined, digits = 1) =>
   value == null ? "—" : `${value > 0 ? "+" : ""}${fmt(value, digits)}`;
 
-export function timeIST(value: string | null | undefined): string {
-  if (!value) return "—";
-  const normalized = value.includes("T")
+function parseDate(value: string): Date {
+  const normalized = /(?:Z|[+-]\d{2}:\d{2})$/i.test(value)
     ? value
     : value.replace(" ", "T") + "+05:30";
-  const date = new Date(normalized);
+  return new Date(normalized);
+}
+
+export function quoteAgeMinutes(
+  value: string | null | undefined,
+): number | null {
+  if (!value) return null;
+  const stamp = parseDate(value).getTime();
+  return Number.isFinite(stamp)
+    ? Math.max(0, (Date.now() - stamp) / 60000)
+    : null;
+}
+
+export function timeIST(value: string | null | undefined): string {
+  if (!value) return "—";
+  const date = parseDate(value);
   if (Number.isNaN(date.getTime())) return value;
   return (
     new Intl.DateTimeFormat("en-IN", {

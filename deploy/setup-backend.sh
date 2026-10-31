@@ -17,6 +17,10 @@ if [[ ! -s "$auth_file" ]]; then
   echo "Create $auth_file for HTTP Basic authentication before deploying" >&2
   exit 1
 fi
+if ! runuser -u www-data -- test -r "$auth_file"; then
+  echo "Nginx worker cannot read $auth_file; grant its group read access" >&2
+  exit 1
+fi
 if [[ ! -f /opt/stock-basket/.env ]]; then
   echo "The Stock Basket server environment is missing at /opt/stock-basket/.env" >&2
   exit 1
@@ -55,7 +59,7 @@ systemctl enable --now commodity-desk.service
 systemctl restart commodity-desk.service
 
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
-  if curl -fsS --max-time 3 http://127.0.0.1:5004/api/health >/dev/null; then break; fi
+  if curl -fsS --max-time 3 http://127.0.0.1:5004/api/health >/dev/null 2>&1; then break; fi
   sleep 2
 done
 curl -fsS --max-time 5 http://127.0.0.1:5004/api/health >/dev/null
@@ -68,8 +72,8 @@ install -m 644 "$app_dir/deploy/nginx-commodity-desk-ui.conf" "$ui_snippet"
 nginx -t
 systemctl reload nginx
 
-ui_code="$(curl -ksS -o /dev/null -w '%{http_code}' --max-time 10 https://127.0.0.1/commodity-desk/)"
-api_code="$(curl -ksS -o /dev/null -w '%{http_code}' --max-time 10 https://127.0.0.1/commodity-desk-api/api/health)"
+ui_code="$(curl -ksS -o /dev/null -w '%{http_code}' --max-time 10 https://165.227.84.87/commodity-desk/)"
+api_code="$(curl -ksS -o /dev/null -w '%{http_code}' --max-time 10 https://165.227.84.87/commodity-desk-api/api/health)"
 if [[ "$ui_code" != 401 || "$api_code" != 401 ]]; then
   echo "Expected protected HTTPS routes; received UI $ui_code and API $api_code" >&2
   exit 1

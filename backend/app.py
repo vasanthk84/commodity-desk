@@ -18,7 +18,7 @@ def error_text(exc, source):
     if name == "TokenException":
         return f"{source} session expired. Run Kite Token Refresh in OI Analyzer, then retry."
     if name == "PermissionException":
-        return f"{source} account or data permission is unavailable."
+        return f"{source} denied this request (403). Check the Kite Connect app's permissions and market-data subscription."
     if isinstance(exc, RuntimeError):
         return str(exc)
     return f"{source} is unavailable ({name}). Retry after checking the connection."

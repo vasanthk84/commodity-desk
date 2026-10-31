@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from dotenv import dotenv_values
 from kiteconnect import KiteConnect
+from kiteconnect.exceptions import PermissionException, TokenException
 
 DEFAULT_SOURCE = Path(r"D:\stock-basket\.env")
 _catalog = {"at": 0.0, "rows": []}
@@ -38,6 +39,8 @@ def credential_candidates():
 
 
 def client():
+    permission_denied = False
+    token_rejected = False
     for _, key, token in credential_candidates():
         kite = KiteConnect(api_key=key)
         kite.set_access_token(token)
@@ -47,9 +50,17 @@ def client():
             kite.profile()
             _validated.update(token=token, at=time.monotonic())
             return kite
-        except Exception:
-            continue
-    raise RuntimeError("Kite session expired. Run Kite Token Refresh in OI Analyzer, then retry.")
+        except PermissionException:
+            permission_denied = True
+        except TokenException:
+            token_rejected = True
+        except Exception as exc:
+            raise RuntimeError(f"Kite connection check failed ({type(exc).__name__}). Retry after checking the network.") from exc
+    if permission_denied:
+        raise RuntimeError("Kite denied this app's access (403). Check the Kite Connect app's permissions and market-data subscription in the developer console.")
+    if token_rejected:
+        raise RuntimeError("Kite session expired. Run Kite Token Refresh in OI Analyzer, then retry.")
+    raise RuntimeError("Kite credentials were not accepted. Check the OI Analyzer connection.")
 
 
 def catalog(kite):

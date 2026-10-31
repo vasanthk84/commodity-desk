@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from backend import kite_data
+from kiteconnect.exceptions import PermissionException, TokenException
 
 
 class KiteSourceTests(unittest.TestCase):
@@ -48,6 +49,18 @@ class KiteSourceTests(unittest.TestCase):
             )
             with patch.dict(os.environ, {"KITE_SOURCE_ENV": str(stock)}, clear=True):
                 self.assertEqual(kite_data.credential_candidates(), [("Stock Basket", "same-key", "stock-token")])
+
+    def test_permission_denial_is_not_reported_as_token_expiry(self):
+        candidates = [("OI Analyzer", "same-key", "renewed-token"),
+                      ("Stock Basket", "same-key", "old-token")]
+        with patch.object(kite_data, "credential_candidates", return_value=candidates), \
+             patch.object(kite_data, "KiteConnect") as factory:
+            factory.return_value.profile.side_effect = [
+                PermissionException("Insufficient permission for that call."),
+                TokenException("Incorrect api_key or access_token"),
+            ]
+            with self.assertRaisesRegex(RuntimeError, "Kite denied this app's access"):
+                kite_data.client()
 
 
 if __name__ == "__main__":

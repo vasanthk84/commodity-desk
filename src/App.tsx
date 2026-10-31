@@ -206,6 +206,18 @@ export function App() {
   }
   const gasNext = nextReport("gas");
   const crudeNext = nextReport("crude");
+  const kiteError = overview?.market_error || stripError;
+  const kiteLabel = overview?.market
+    ? overview.market.future.read.fresh
+      ? "KITE LIVE"
+      : "KITE CONNECTED · QUOTE STALE"
+    : /denied|permission|403/i.test(kiteError)
+      ? "KITE ACCESS DENIED"
+      : /expired|token/i.test(kiteError)
+        ? "KITE TOKEN EXPIRED"
+        : loading
+          ? "KITE CHECKING"
+          : "KITE UNAVAILABLE";
 
   return (
     <div className="app-shell">
@@ -220,11 +232,9 @@ export function App() {
           </div>
           <div className="top-actions">
             <span
-              className={`connection ${overview?.market && overview.market.future.read.fresh ? "on" : "off"}`}
+              className={`connection ${overview?.market?.future.read.fresh ? "on" : "off"}`}
             >
-              {overview?.market && overview.market.future.read.fresh
-                ? "KITE LIVE"
-                : "KITE OFFLINE / CLOSED"}
+              {kiteLabel}
             </span>
             <button
               className="ghost"

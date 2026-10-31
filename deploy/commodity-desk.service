@@ -1,0 +1,15 @@
+[Unit]
+Description=Commodity Desk read-only Flask API
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/commodity-desk
+Environment=KITE_SOURCE_ENV=/opt/stock-basket/.env
+Environment=OI_ANALYZER_ENV_PATH=/opt/oi-analyzer/.env
+ExecStart=/opt/commodity-desk/.venv/bin/gunicorn -w 1 --threads 8 --timeout 120 -b 127.0.0.1:5004 backend.app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

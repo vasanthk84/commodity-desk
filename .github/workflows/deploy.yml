@@ -1,0 +1,86 @@
+name: Deploy Commodity Desk to DigitalOcean
+run-name: Deploy ${{ github.ref_name }} to Commodity Desk
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commodity-desk-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Test backend
+        run: |
+          python -m pip install -r requirements.txt
+          python -m unittest discover -s tests -q
+
+      - name: Build frontend
+        env:
+          VITE_BASE_PATH: /commodity-desk/
+          VITE_API_BASE: /commodity-desk-api
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Package release
+        run: python scripts/package_release.py source.tar.gz
+
+      - name: Verify packaged API
+        run: |
+          release_check=$(mktemp -d)
+          tar -xzf source.tar.gz -C "$release_check"
+          cd "$release_check"
+          PYTHONPATH="$release_check" python - <<'PY'
+          from backend.app import app
+          response = app.test_client().get('/api/health')
+          assert response.status_code == 200, response.data
+          assert response.get_json()['mode'] == 'read-only'
+          PY
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          test -n "$SSH_PRIVATE_KEY"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' '165.227.84.87 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC24Z16YMLGJnspc4zlKTHkGQpvM8Hnf0DuFQQPFMa3k' > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload and deploy
+        env:
+          STAGE: /root/commodity-desk-stage-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes root@165.227.84.87 "umask 077 && mkdir -p '$STAGE'"
+          scp -q -o BatchMode=yes source.tar.gz deploy/setup-backend.sh root@165.227.84.87:"$STAGE/"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes root@165.227.84.87 "bash '$STAGE/setup-backend.sh' '$STAGE'"
+
+      - name: Verify production protection
+        run: |
+          test "$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://165.227.84.87/commodity-desk/)" = 401
+          test "$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://165.227.84.87/commodity-desk-api/api/health)" = 401
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes root@165.227.84.87 \
+            'curl -fsS --max-time 10 http://127.0.0.1:5004/api/health'

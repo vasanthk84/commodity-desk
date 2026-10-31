@@ -1,0 +1,214 @@
+.plan-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.plan-form label,
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--ink);
+}
+.plan-form label.full,
+.plan-form .full {
+  grid-column: 1/-1;
+}
+.plan-form textarea {
+  min-height: 75px;
+  resize: vertical;
+}
+.plan-math {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.plan-math span {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+}
+.plan-math b {
+  display: block;
+  color: var(--ink);
+  font-size: 16px;
+  margin-top: 6px;
+}
+.plan-form .fineprint {
+  margin: 0;
+}
+.plan-row {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.plan-row:last-child {
+  border-bottom: 0;
+}
+.plan-row b {
+  font-size: 12px;
+  color: var(--ink);
+}
+.plan-row small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.plan-row p {
+  margin: 7px 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.legacy-panel {
+  margin-top: 15px;
+}
+.settings-field {
+  margin-bottom: 20px;
+}
+.settings-field small {
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.settings-field > button {
+  align-self: start;
+}
+.settings-field .actions {
+  display: flex;
+  gap: 8px;
+}
+.settings-grid .notice {
+  margin: 14px 0;
+}
+@media (max-width: 1100px) {
+  .market-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .desk-grid,
+  .reports-grid,
+  .plans-layout,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .read-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 650px) {
+  .content {
+    padding: 17px 12px;
+  }
+  .topbar {
+    padding: 0 11px;
+    height: 52px;
+  }
+  .brand small {
+    display: none;
+  }
+  .connection {
+    font-size: 8px;
+  }
+  .workspace-nav {
+    gap: 17px;
+    padding: 0 11px;
+  }
+  .page-head {
+    align-items: start;
+  }
+  .page-head h1 {
+    font-size: 21px;
+  }
+  .page-head p {
+    max-width: 260px;
+    line-height: 1.4;
+  }
+  .page-actions {
+    flex-direction: column;
+    align-items: end;
+    gap: 5px;
+  }
+  .date-stamp {
+    display: none;
+  }
+  .market-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .market-card {
+    padding: 10px;
+  }
+  .market-card strong {
+    font-size: 16px;
+  }
+  .panel {
+    padding: 14px;
+  }
+  .read-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .report-cells {
+    gap: 5px;
+  }
+  .report-cells > div {
+    padding: 8px 5px;
+  }
+  .report-cells strong {
+    font-size: 15px;
+  }
+  .report-cells input {
+    font-size: 15px;
+  }
+  .report-cells span,
+  .report-cells label {
+    font-size: 8px;
+  }
+  .next-grid {
+    grid-template-columns: 1fr;
+  }
+  .pattern {
+    flex-direction: column;
+  }
+  .plan-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .plan-math span {
+    min-width: 90px;
+  }
+  footer {
+    font-size: 9px;
+  }
+}
+@media (max-width: 390px) {
+  .market-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .brand {
+    font-size: 12px;
+  }
+  .market-card strong {
+    font-size: 14px;
+  }
+  .market-meta,
+  .market-source {
+    font-size: 9px;
+  }
+  .report-cells strong {
+    font-size: 13px;
+  }
+  .report-cells input {
+    font-size: 13px;
+  }
+  .pill {
+    font-size: 8px;
+  }
+}

@@ -45,8 +45,8 @@
   font-size: 10px;
   color: var(--muted);
 }
-.market-source.stale {
-  color: var(--warning);
+.market-source.older {
+  color: var(--muted);
 }
 .market-report {
   font-size: 10px;

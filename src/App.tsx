@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchOverview, fetchStrip } from "./api";
-import { nextReport } from "./calendar";
 import { ChainPanel } from "./components/ChainPanel";
+import { InstrumentSummary } from "./components/InstrumentSummary";
 import { LegacyJournal } from "./components/LegacyJournal";
 import { LegacyReports } from "./components/LegacyReports";
 import { MarketStrip } from "./components/MarketStrip";
@@ -9,6 +9,8 @@ import { PaperPlans } from "./components/PaperPlans";
 import { ReadPanel } from "./components/ReadPanel";
 import { ReportPanel } from "./components/ReportPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { TrendPanel } from "./components/TrendPanel";
+import { UpcomingReports } from "./components/UpcomingReports";
 import { timeIST } from "./format";
 import { readLocal, reportId, writeLocal } from "./storage";
 import type { Overview, PaperPlan, Product, StripItem } from "./types";
@@ -223,13 +225,9 @@ export function App() {
       "Choose a Commodity Desk JSON export or the earlier HTML desk export.",
     );
   }
-  const gasNext = nextReport("gas");
-  const crudeNext = nextReport("crude");
   const kiteError = overview?.market_error || stripError;
   const kiteLabel = overview?.market
-    ? overview.market.future.read.fresh
-      ? "KITE LIVE"
-      : "KITE CONNECTED · QUOTE STALE"
+    ? "KITE CONNECTED"
     : /denied|permission|403/i.test(kiteError)
       ? "KITE ACCESS DENIED"
       : /expired|token/i.test(kiteError)
@@ -250,11 +248,16 @@ export function App() {
             </div>
           </div>
           <div className="top-actions">
-            <span
-              className={`connection ${overview?.market?.future.read.fresh ? "on" : "off"}`}
-            >
+            <span className={`connection ${overview?.market ? "on" : "off"}`}>
               {kiteLabel}
             </span>
+            <button
+              className="ghost refresh-button"
+              onClick={refresh}
+              disabled={loading}
+            >
+              {loading ? "Refreshing…" : "↻ Refresh"}
+            </button>
             <button
               className="ghost"
               onClick={() => {
@@ -263,7 +266,7 @@ export function App() {
                     ? "light"
                     : "dark";
                 document.documentElement.dataset.theme = next;
-                writeLocal("theme", next);
+                writeLocal("theme-v2", next);
               }}
               aria-label="Toggle light and dark theme"
             >
@@ -274,7 +277,7 @@ export function App() {
         <nav className="workspace-nav" aria-label="Workspace sections">
           {(
             [
-              ["desk", "Market desk"],
+              ["desk", "Overview"],
               ["chain", "Option OI"],
               ["reports", "EIA reports"],
               ["plans", "Paper plans"],
@@ -293,45 +296,38 @@ export function App() {
         </nav>
       </div>
       <main className="content">
-        <div className="page-head">
-          <div>
-            <span className="eyebrow">MCX / COMMODITY WORKSPACE</span>
-            <h1>
-              {tab === "desk"
-                ? "Market desk"
-                : tab === "chain"
+        {tab !== "desk" && (
+          <div className="page-head">
+            <div>
+              <span className="eyebrow">MCX / COMMODITY WORKSPACE</span>
+              <h1>
+                {tab === "chain"
                   ? "Option OI"
                   : tab === "reports"
                     ? "EIA report context"
                     : tab === "plans"
                       ? "Paper spread plans"
                       : "Settings & backup"}
-            </h1>
-            <p>
-              {tab === "desk"
-                ? "Read the contract, inventory release and OI pattern at a glance."
-                : tab === "plans"
+              </h1>
+              <p>
+                {tab === "plans"
                   ? "Plan small defined-risk option sales without placing an order."
                   : "Review the evidence and its source before deciding."}
-            </p>
+              </p>
+            </div>
+            <div className="page-actions">
+              <span className="date-stamp">
+                {timeIST(new Date().toISOString())}
+              </span>
+            </div>
           </div>
-          <div className="page-actions">
-            <span className="date-stamp">
-              {timeIST(new Date().toISOString())}
-            </span>
-            <button onClick={refresh} disabled={loading}>
-              {loading ? "Refreshing…" : "↻ Refresh data"}
-            </button>
-          </div>
-        </div>
+        )}
         {tab !== "settings" && (
           <MarketStrip
             items={strip}
             selected={product}
             onSelect={chooseProduct}
             error={stripError}
-            overview={overview}
-            forecast={forecast}
           />
         )}
         {stripError && tab !== "settings" && (
@@ -341,6 +337,11 @@ export function App() {
         )}
         {tab === "desk" && (
           <>
+            <InstrumentSummary
+              product={product}
+              overview={overview}
+              stripItem={strip.find((item) => item.product === product)}
+            />
             <div className="desk-grid">
               <ReportPanel
                 overview={overview}
@@ -349,37 +350,10 @@ export function App() {
                 onForecast={changeForecast}
                 onRefresh={refresh}
               />
-              <ReadPanel overview={overview} />
+              <TrendPanel overview={overview} />
+              <ReadPanel overview={overview} onPlan={() => setTab("plans")} />
             </div>
-            <section className="panel next-panel">
-              <div className="panel-head">
-                <div>
-                  <div className="eyebrow">UPCOMING RELEASES</div>
-                  <h2>Check official schedules</h2>
-                </div>
-              </div>
-              <div className="next-grid">
-                <div>
-                  <b>Natural gas storage</b>
-                  <span>{gasNext ? timeIST(gasNext.when) : "—"}</span>
-                  <a href={gasNext?.source} target="_blank" rel="noreferrer">
-                    Verify EIA schedule ↗
-                  </a>
-                </div>
-                <div>
-                  <b>Weekly petroleum</b>
-                  <span>{crudeNext ? timeIST(crudeNext.when) : "—"}</span>
-                  <a href={crudeNext?.source} target="_blank" rel="noreferrer">
-                    Verify EIA schedule ↗
-                  </a>
-                </div>
-              </div>
-              <p className="fineprint">
-                Times are converted from U.S. Eastern time to IST. Holiday
-                changes may override the recurring time; use the linked official
-                schedule.
-              </p>
-            </section>
+            <UpcomingReports />
           </>
         )}
         {tab === "chain" && (

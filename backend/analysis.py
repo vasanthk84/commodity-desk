@@ -59,7 +59,7 @@ def option_read(chain):
 def setup_read(futures, chain, eia, forecast, product, expiry=None):
     reasons = []
     if not futures["fresh"]:
-        reasons.append("Kite quote is stale or missing; wait for a fresh MCX session.")
+        reasons.append("Last quote is over 15 minutes old or missing. Wait for a new MCX quote before evaluating a setup.")
     if not chain["has_baseline"]:
         reasons.append("Refresh again later to establish an option OI change baseline.")
     if chain["tradable_calls"] < 2 or chain["tradable_puts"] < 2:

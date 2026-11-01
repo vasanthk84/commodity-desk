@@ -1,5 +1,5 @@
 import type { Overview, Product } from "../types";
-import { fmt, signed } from "../format";
+import { dayIST, fmt, signed } from "../format";
 
 interface Props {
   overview: Overview | null;
@@ -19,6 +19,7 @@ export function ReportPanel({
   const eia = overview?.eia;
   const gold = product.startsWith("GOLD");
   const unit = eia?.unit || (product.startsWith("NG") ? "Bcf" : "million bbl");
+  const precision = product.startsWith("NG") ? 0 : 3;
   const actual = eia?.actual;
   const prior = eia?.previous;
   const surprise =
@@ -56,7 +57,7 @@ export function ReportPanel({
                 ACTUAL <em>EIA</em>
               </span>
               <strong className="mono">
-                {actual != null ? signed(actual, 3) : "—"}
+                {actual != null ? signed(actual, precision) : "—"}
               </strong>
               <small>{unit}</small>
             </div>
@@ -81,7 +82,7 @@ export function ReportPanel({
                 PREVIOUS <em>EIA</em>
               </span>
               <strong className="mono">
-                {prior != null ? signed(prior, 3) : "—"}
+                {prior != null ? signed(prior, precision) : "—"}
               </strong>
               <small>{unit}</small>
             </div>
@@ -89,12 +90,12 @@ export function ReportPanel({
           <p className="report-meaning">
             {surprise == null
               ? "Enter the calendar forecast to compare it with the released number."
-              : `Actual is ${fmt(Math.abs(surprise), 3)} ${unit} ${surprise < 0 ? "below" : surprise > 0 ? "above" : "equal to"} forecast.`}
+              : `Actual is ${fmt(Math.abs(surprise), precision)} ${unit} ${surprise < 0 ? "below" : surprise > 0 ? "above" : "equal to"} forecast.`}
           </p>
           <p className="muted">
-            {eia?.week_ending ? `Week ending ${eia.week_ending}. ` : ""}Stock
-            change is a balance proxy, not direct demand. EIA API may lag the
-            release by up to two hours.
+            {eia?.week_ending ? `Week ending ${dayIST(eia.week_ending)}. ` : ""}
+            Stock change is a balance proxy, not direct demand. EIA API may lag
+            the release by up to two hours.
           </p>
           {overview?.eia_error && <p className="error">{overview.eia_error}</p>}
           {eia?.status !== "ok" && (

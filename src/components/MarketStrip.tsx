@@ -1,34 +1,28 @@
-import {
-  PRODUCTS,
-  type Overview,
-  type Product,
-  type StripItem,
-} from "../types";
-import { fmt, quoteAgeMinutes, signed, timeIST } from "../format";
+import { PRODUCTS, type Product, type StripItem } from "../types";
+import { fmt, quoteAgeMinutes, timeIST } from "../format";
 
 interface Props {
   items: StripItem[];
   selected: Product;
   onSelect: (product: Product) => void;
   error: string;
-  overview: Overview | null;
-  forecast: string;
 }
 
-export function MarketStrip({
-  items,
-  selected,
-  onSelect,
-  error,
-  overview,
-  forecast,
-}: Props) {
+export function MarketStrip({ items, selected, onSelect, error }: Props) {
   return (
     <section className="market-grid" aria-label="MCX commodities">
       {PRODUCTS.map((product) => {
         const item = items.find((row) => row.product === product.id);
         const age = quoteAgeMinutes(item?.quote_at);
-        const stale = age !== null && age > 15;
+        const older = age !== null && age > 15;
+        const ageText =
+          age === null
+            ? ""
+            : age < 60
+              ? `${Math.floor(age)}m old`
+              : age < 1440
+                ? `${Math.floor(age / 60)}h old`
+                : `${Math.floor(age / 1440)}d old`;
         return (
           <button
             key={product.id}
@@ -44,33 +38,13 @@ export function MarketStrip({
               OI {item?.oi != null ? fmt(item.oi, 0) : "—"} ·{" "}
               {item?.expiry || "No contract"}
             </span>
-            <span className={`market-source ${stale ? "stale" : ""}`}>
+            <span className={`market-source ${older ? "older" : ""}`}>
               {item?.quote_at
-                ? `${stale ? "Last quote" : "Kite"} ${timeIST(item.quote_at)}${stale ? " · stale" : ""}`
+                ? `${older ? "Last quote" : "Kite quote"} ${timeIST(item.quote_at)}${older ? ` · ${ageText}` : ""}`
                 : error
                   ? "Kite unavailable"
                   : "Waiting for Kite"}
             </span>
-            {selected === product.id &&
-              overview?.product === product.id &&
-              overview.eia?.status === "ok" && (
-                <span className="market-report mono">
-                  A{" "}
-                  {overview.eia.actual != null
-                    ? signed(
-                        overview.eia.actual,
-                        product.id.startsWith("NG") ? 0 : 2,
-                      )
-                    : "—"}{" "}
-                  · F {forecast || "—"} · P{" "}
-                  {overview.eia.previous != null
-                    ? signed(
-                        overview.eia.previous,
-                        product.id.startsWith("NG") ? 0 : 2,
-                      )
-                    : "—"}
-                </span>
-              )}
           </button>
         );
       })}

@@ -3,5 +3,5 @@ import { App } from "./App";
 import "./styles.css";
 import { readLocal } from "./storage";
 
-document.documentElement.dataset.theme = readLocal("theme", "dark");
+document.documentElement.dataset.theme = readLocal("theme-v2", "light");
 createRoot(document.getElementById("root")!).render(<App />);

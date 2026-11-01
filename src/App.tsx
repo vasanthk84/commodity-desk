@@ -25,7 +25,6 @@ export function App() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshId, setRefreshId] = useState(0);
-  const [theme, setTheme] = useState(() => readLocal("theme", "light"));
   const [eiaKey, setEiaKey] = useState(() => readLocal("eia-key", ""));
   const [capital, setCapital] = useState(() => readLocal("capital", 500000));
   const [plans, setPlans] = useState<PaperPlan[]>(() => readLocal("plans", []));
@@ -230,7 +229,7 @@ export function App() {
   const kiteLabel = overview?.market
     ? overview.market.future.read.fresh
       ? "KITE LIVE"
-      : "KITE QUOTE STALE"
+      : "KITE CONNECTED · QUOTE STALE"
     : /denied|permission|403/i.test(kiteError)
       ? "KITE ACCESS DENIED"
       : /expired|token/i.test(kiteError)
@@ -257,29 +256,28 @@ export function App() {
               {kiteLabel}
             </span>
             <button
-              className="ghost theme-toggle"
+              className="ghost"
               onClick={() => {
-                const next = theme === "dark" ? "light" : "dark";
+                const next =
+                  document.documentElement.dataset.theme === "dark"
+                    ? "light"
+                    : "dark";
                 document.documentElement.dataset.theme = next;
                 writeLocal("theme", next);
-                setTheme(next);
               }}
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              aria-label="Toggle light and dark theme"
             >
-              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
-              <span className="theme-label">
-                {theme === "dark" ? "Light" : "Dark"}
-              </span>
+              ◐
             </button>
           </div>
         </div>
         <nav className="workspace-nav" aria-label="Workspace sections">
           {(
             [
-              ["desk", "Overview"],
-              ["chain", "Option chain"],
-              ["reports", "Reports"],
-              ["plans", "Paper trades"],
+              ["desk", "Market desk"],
+              ["chain", "Option OI"],
+              ["reports", "EIA reports"],
+              ["plans", "Paper plans"],
               ["settings", "Settings"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
@@ -300,7 +298,7 @@ export function App() {
             <span className="eyebrow">MCX / COMMODITY WORKSPACE</span>
             <h1>
               {tab === "desk"
-                ? "Market overview"
+                ? "Market desk"
                 : tab === "chain"
                   ? "Option OI"
                   : tab === "reports"
@@ -311,7 +309,7 @@ export function App() {
             </h1>
             <p>
               {tab === "desk"
-                ? "Live contracts, inventory context and a measured market read."
+                ? "Read the contract, inventory release and OI pattern at a glance."
                 : tab === "plans"
                   ? "Plan small defined-risk option sales without placing an order."
                   : "Review the evidence and its source before deciding."}
@@ -321,13 +319,8 @@ export function App() {
             <span className="date-stamp">
               {timeIST(new Date().toISOString())}
             </span>
-            <button
-              className="refresh-button"
-              onClick={refresh}
-              disabled={loading}
-            >
-              <span aria-hidden="true">↻</span>{" "}
-              {loading ? "Refreshing…" : "Refresh"}
+            <button onClick={refresh} disabled={loading}>
+              {loading ? "Refreshing…" : "↻ Refresh data"}
             </button>
           </div>
         </div>
@@ -341,9 +334,9 @@ export function App() {
             forecast={forecast}
           />
         )}
-        {stripError && tab !== "settings" && !overview?.market_error && (
-          <div className="notice warn-note" role="status">
-            {stripError}
+        {stripError && tab !== "settings" && (
+          <div className="notice warn-note">
+            {stripError} The EIA panel can still load independently.
           </div>
         )}
         {tab === "desk" && (

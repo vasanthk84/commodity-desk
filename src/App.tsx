@@ -25,6 +25,7 @@ export function App() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshId, setRefreshId] = useState(0);
+  const [theme, setTheme] = useState(() => readLocal("theme", "light"));
   const [eiaKey, setEiaKey] = useState(() => readLocal("eia-key", ""));
   const [capital, setCapital] = useState(() => readLocal("capital", 500000));
   const [plans, setPlans] = useState<PaperPlan[]>(() => readLocal("plans", []));
@@ -229,7 +230,7 @@ export function App() {
   const kiteLabel = overview?.market
     ? overview.market.future.read.fresh
       ? "KITE LIVE"
-      : "KITE CONNECTED · QUOTE STALE"
+      : "KITE QUOTE STALE"
     : /denied|permission|403/i.test(kiteError)
       ? "KITE ACCESS DENIED"
       : /expired|token/i.test(kiteError)
@@ -256,28 +257,29 @@ export function App() {
               {kiteLabel}
             </span>
             <button
-              className="ghost"
+              className="ghost theme-toggle"
               onClick={() => {
-                const next =
-                  document.documentElement.dataset.theme === "dark"
-                    ? "light"
-                    : "dark";
+                const next = theme === "dark" ? "light" : "dark";
                 document.documentElement.dataset.theme = next;
                 writeLocal("theme", next);
+                setTheme(next);
               }}
-              aria-label="Toggle light and dark theme"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
-              ◐
+              <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+              <span className="theme-label">
+                {theme === "dark" ? "Light" : "Dark"}
+              </span>
             </button>
           </div>
         </div>
         <nav className="workspace-nav" aria-label="Workspace sections">
           {(
             [
-              ["desk", "Market desk"],
-              ["chain", "Option OI"],
-              ["reports", "EIA reports"],
-              ["plans", "Paper plans"],
+              ["desk", "Overview"],
+              ["chain", "Option chain"],
+              ["reports", "Reports"],
+              ["plans", "Paper trades"],
               ["settings", "Settings"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
@@ -298,7 +300,7 @@ export function App() {
             <span className="eyebrow">MCX / COMMODITY WORKSPACE</span>
             <h1>
               {tab === "desk"
-                ? "Market desk"
+                ? "Market overview"
                 : tab === "chain"
                   ? "Option OI"
                   : tab === "reports"
@@ -309,7 +311,7 @@ export function App() {
             </h1>
             <p>
               {tab === "desk"
-                ? "Read the contract, inventory release and OI pattern at a glance."
+                ? "Live contracts, inventory context and a measured market read."
                 : tab === "plans"
                   ? "Plan small defined-risk option sales without placing an order."
                   : "Review the evidence and its source before deciding."}
@@ -319,8 +321,13 @@ export function App() {
             <span className="date-stamp">
               {timeIST(new Date().toISOString())}
             </span>
-            <button onClick={refresh} disabled={loading}>
-              {loading ? "Refreshing…" : "↻ Refresh data"}
+            <button
+              className="refresh-button"
+              onClick={refresh}
+              disabled={loading}
+            >
+              <span aria-hidden="true">↻</span>{" "}
+              {loading ? "Refreshing…" : "Refresh"}
             </button>
           </div>
         </div>
@@ -334,9 +341,9 @@ export function App() {
             forecast={forecast}
           />
         )}
-        {stripError && tab !== "settings" && (
-          <div className="notice warn-note">
-            {stripError} The EIA panel can still load independently.
+        {stripError && tab !== "settings" && !overview?.market_error && (
+          <div className="notice warn-note" role="status">
+            {stripError}
           </div>
         )}
         {tab === "desk" && (

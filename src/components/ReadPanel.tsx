@@ -5,12 +5,39 @@ export function ReadPanel({ overview }: { overview: Overview | null }) {
   const market = overview?.market;
   const read = market?.future.read;
   const setup = overview?.setup;
+  if (!market) {
+    return (
+      <section className="panel read-panel">
+        <div className="panel-head">
+          <div>
+            <div className="eyebrow">MARKET READ</div>
+            <h2>Price & open interest</h2>
+          </div>
+          <span className="pill warn">DATA UNAVAILABLE</span>
+        </div>
+        <div className="market-empty" role="status">
+          <div className="market-empty-icon" aria-hidden="true">
+            ⌁
+          </div>
+          <h3>Waiting for MCX market data</h3>
+          <p>
+            {overview?.market_error ||
+              "Connecting to Kite for contract and OI data."}
+          </p>
+          <small>
+            Inventory reports remain available. Review trade direction only when
+            current price and OI are present.
+          </small>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="panel read-panel">
       <div className="panel-head">
         <div>
-          <div className="eyebrow">CONDITIONAL READ</div>
-          <h2>Price + open interest</h2>
+          <div className="eyebrow">MARKET READ</div>
+          <h2>Price & open interest</h2>
         </div>
         <span className={`pill ${read?.fresh ? "good" : "warn"}`}>
           {read?.fresh ? "FRESH QUOTE" : "STALE / NO QUOTE"}
@@ -26,12 +53,20 @@ export function ReadPanel({ overview }: { overview: Overview | null }) {
         </div>
         <div className="stat">
           <span>PRICE VS PRIOR CLOSE</span>
-          <strong className="mono">{read?.price_change_pct == null ? "—" : `${signed(read.price_change_pct)}%`}</strong>
+          <strong className="mono">
+            {read?.price_change_pct == null
+              ? "—"
+              : `${signed(read.price_change_pct)}%`}
+          </strong>
           <small>Quote OHLC baseline</small>
         </div>
         <div className="stat">
           <span>FUTURES OI CHANGE</span>
-          <strong className="mono">{read?.oi_change_pct == null ? "—" : `${signed(read.oi_change_pct)}%`}</strong>
+          <strong className="mono">
+            {read?.oi_change_pct == null
+              ? "—"
+              : `${signed(read.oi_change_pct)}%`}
+          </strong>
           <small>Vs last completed daily candle</small>
         </div>
         <div className="stat">
@@ -69,9 +104,6 @@ export function ReadPanel({ overview }: { overview: Overview | null }) {
             "Use a defined-risk paper plan after checking margin and expiry."}
         </p>
       </div>
-      {overview?.market_error && (
-        <p className="error">{overview.market_error}</p>
-      )}
     </section>
   );
 }

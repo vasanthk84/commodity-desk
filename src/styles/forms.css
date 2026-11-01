@@ -106,27 +106,37 @@
 }
 @media (max-width: 650px) {
   .content {
-    padding: 17px 12px;
+    padding: 20px 15px;
   }
   .topbar {
-    padding: 0 11px;
-    height: 52px;
+    padding: 0 15px;
+    height: 58px;
   }
   .brand small {
     display: none;
   }
   .connection {
     font-size: 8px;
+    padding: 6px 8px;
+  }
+  .theme-label {
+    display: none;
+  }
+  .theme-toggle {
+    width: 34px;
+    justify-content: center;
+    padding: 6px;
   }
   .workspace-nav {
-    gap: 17px;
-    padding: 0 11px;
+    gap: 22px;
+    padding: 0 15px;
   }
   .page-head {
     align-items: start;
+    margin-bottom: 20px;
   }
   .page-head h1 {
-    font-size: 21px;
+    font-size: 24px;
   }
   .page-head p {
     max-width: 260px;
@@ -141,17 +151,23 @@
     display: none;
   }
   .market-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
   }
   .market-card {
-    padding: 10px;
+    padding: 12px;
   }
-  .market-card strong {
-    font-size: 16px;
+  .market-card .market-price {
+    font-size: 18px;
+  }
+  .market-label {
+    margin-bottom: 10px;
+  }
+  .market-bottom {
+    font-size: 9px;
   }
   .panel {
-    padding: 14px;
+    padding: 16px;
   }
   .read-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -160,7 +176,7 @@
     gap: 5px;
   }
   .report-cells > div {
-    padding: 8px 5px;
+    padding: 10px 7px;
   }
   .report-cells strong {
     font-size: 15px;
@@ -189,17 +205,14 @@
   }
 }
 @media (max-width: 390px) {
-  .market-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .brand {
     font-size: 12px;
   }
-  .market-card strong {
-    font-size: 14px;
+  .market-card .market-price {
+    font-size: 16px;
   }
   .market-meta,
-  .market-source {
+  .market-bottom {
     font-size: 9px;
   }
   .report-cells strong {

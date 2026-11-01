@@ -118,8 +118,8 @@ export function ChainPanel({ overview, expiry, onExpiry }: Props) {
         </table>
         {!strikes.length && (
           <div className="empty">
-            No option quotes yet. Check Kite connection, commodity symbol and
-            expiry.
+            {overview?.market_error ||
+              "No option quotes yet. Check the Kite connection, commodity and expiry."}
           </div>
         )}
       </div>

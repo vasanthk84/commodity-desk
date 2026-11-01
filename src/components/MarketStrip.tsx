@@ -36,26 +36,36 @@ export function MarketStrip({
             onClick={() => onSelect(product.id)}
             aria-pressed={selected === product.id}
           >
-            <span className="market-name">{product.short}</span>
-            <strong className="mono">
+            <span className="market-card-head">
+              <span className="market-symbol">{product.short}</span>
+              <span className="market-selector" aria-hidden="true">
+                ↗
+              </span>
+            </span>
+            <span className="market-label">{product.label}</span>
+            <strong className="market-price mono">
               {item?.price != null ? `₹${fmt(item.price, 2)}` : "—"}
             </strong>
+            <span className="market-card-divider" />
             <span className="market-meta">
-              OI {item?.oi != null ? fmt(item.oi, 0) : "—"} ·{" "}
-              {item?.expiry || "No contract"}
+              <span>Open interest</span>
+              <b className="mono">{item?.oi != null ? fmt(item.oi, 0) : "—"}</b>
             </span>
-            <span className={`market-source ${stale ? "stale" : ""}`}>
-              {item?.quote_at
-                ? `${stale ? "Last quote" : "Kite"} ${timeIST(item.quote_at)}${stale ? " · stale" : ""}`
-                : error
-                  ? "Kite unavailable"
-                  : "Waiting for Kite"}
+            <span className="market-bottom">
+              <span>{item?.expiry || "No contract"}</span>
+              <span className={stale ? "stale" : ""}>
+                {item?.quote_at
+                  ? `${stale ? "Stale · " : ""}${timeIST(item.quote_at)}`
+                  : error
+                    ? "Feed unavailable"
+                    : "Loading feed"}
+              </span>
             </span>
             {selected === product.id &&
               overview?.product === product.id &&
               overview.eia?.status === "ok" && (
                 <span className="market-report mono">
-                  A{" "}
+                  <span>EIA</span> A{" "}
                   {overview.eia.actual != null
                     ? signed(
                         overview.eia.actual,
